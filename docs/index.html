@@ -1,1 +1,765 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZOVI SPACE</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0d1230 100%);
+            color: #e0e6ed;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* 背景装饰 */
+        .bg-decoration {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .light-column {
+            position: absolute;
+            width: 2px;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent, rgba(0, 200, 255, 0.3), transparent);
+            animation: breathe 4s ease-in-out infinite;
+        }
+
+        .light-column:nth-child(1) { left: 10%; animation-delay: 0s; }
+        .light-column:nth-child(2) { left: 30%; animation-delay: 1s; }
+        .light-column:nth-child(3) { left: 50%; animation-delay: 2s; }
+        .light-column:nth-child(4) { left: 70%; animation-delay: 1.5s; }
+        .light-column:nth-child(5) { left: 90%; animation-delay: 0.5s; }
+
+        @keyframes breathe {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 0.6; }
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #00c8ff;
+            border-radius: 50%;
+            animation: float 8s ease-in-out infinite;
+            box-shadow: 0 0 10px #00c8ff;
+        }
+
+        .particle.gold {
+            background: #ffd700;
+            box-shadow: 0 0 10px #ffd700;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0.3; }
+            50% { transform: translateY(-30px) translateX(10px); opacity: 0.8; }
+        }
+
+        /* 鼠标跟随画布 */
+        #cursorCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9998;
+        }
+
+        /* 导航栏 */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px 50px;
+            background: rgba(10, 14, 39, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 200, 255, 0.2);
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(90deg, #00c8ff, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 2px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 40px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: #a0aec0;
+            text-decoration: none;
+            font-size: 16px;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: #00c8ff;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #00c8ff;
+            transition: width 0.3s;
+            box-shadow: 0 0 10px #00c8ff;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        /* 主要内容 */
+        main {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Hero区域 */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 100px 50px 50px;
+            gap: 100px;
+        }
+
+        .hero-content {
+            flex: 1;
+            max-width: 600px;
+        }
+
+        .hero-title {
+            font-size: 72px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #fff 0%, #00c8ff 50%, #ffd700 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+        }
+
+        .hero-subtitle {
+            font-size: 24px;
+            color: #a0aec0;
+            margin-bottom: 40px;
+            letter-spacing: 2px;
+        }
+
+        .hero-subtitle span {
+            color: #00c8ff;
+            margin: 0 10px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 15px 40px;
+            background: linear-gradient(135deg, rgba(0, 200, 255, 0.2), rgba(255, 215, 0, 0.1));
+            border: 1px solid #00c8ff;
+            color: #00c8ff;
+            text-decoration: none;
+            border-radius: 50px;
+            font-size: 18px;
+            transition: all 0.3s;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(0, 200, 255, 0.3);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, rgba(0, 200, 255, 0.4), rgba(255, 215, 0, 0.2));
+            box-shadow: 0 0 30px rgba(0, 200, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .hero-avatar {
+            flex-shrink: 0;
+        }
+
+        .avatar-container {
+            width: 350px;
+            height: 350px;
+            border-radius: 50%;
+            padding: 5px;
+            background: linear-gradient(135deg, #00c8ff, #ffd700);
+            box-shadow: 0 0 50px rgba(0, 200, 255, 0.5);
+            animation: floatAvatar 3s ease-in-out infinite;
+        }
+
+        @keyframes floatAvatar {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .avatar-container img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        /* 通用板块样式 */
+        section {
+            padding: 100px 50px;
+            position: relative;
+        }
+
+        .section-title {
+            font-size: 48px;
+            text-align: center;
+            margin-bottom: 60px;
+            background: linear-gradient(90deg, #00c8ff, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* 关于我 */
+        .about {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .about-content {
+            display: flex;
+            gap: 60px;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 50px;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 200, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .about-avatar {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            border: 3px solid #00c8ff;
+            box-shadow: 0 0 30px rgba(0, 200, 255, 0.3);
+            flex-shrink: 0;
+        }
+
+        .about-text p {
+            font-size: 18px;
+            line-height: 2;
+            color: #c0c8d4;
+            margin-bottom: 20px;
+        }
+
+        .about-text p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* 技能板块 */
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .skill-card {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 40px 30px;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 200, 255, 0.2);
+            text-align: center;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+
+        .skill-card:hover {
+            transform: translateY(-10px);
+            border-color: #00c8ff;
+            box-shadow: 0 10px 40px rgba(0, 200, 255, 0.3);
+        }
+
+        .skill-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .skill-card h3 {
+            font-size: 20px;
+            color: #00c8ff;
+            margin-bottom: 15px;
+        }
+
+        .skill-card p {
+            color: #8892a0;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* 作品板块 */
+        .works-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .work-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 20px;
+            border: 1px solid rgba(0, 200, 255, 0.2);
+            overflow: hidden;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+
+        .work-card:hover {
+            transform: translateY(-5px);
+            border-color: #ffd700;
+            box-shadow: 0 10px 40px rgba(255, 215, 0, 0.2);
+        }
+
+        .work-image {
+            height: 200px;
+            background: linear-gradient(135deg, rgba(0, 200, 255, 0.2), rgba(255, 215, 0, 0.1));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+        }
+
+        .work-info {
+            padding: 25px;
+        }
+
+        .work-info h3 {
+            font-size: 20px;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+
+        .work-info p {
+            color: #8892a0;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* 联系板块 */
+        .contact {
+            text-align: center;
+        }
+
+        .contact-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .contact-link {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 200, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #00c8ff;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .contact-link:hover {
+            background: #00c8ff;
+            color: #0a0e27;
+            box-shadow: 0 0 30px rgba(0, 200, 255, 0.5);
+            transform: translateY(-5px);
+        }
+
+        /* 页脚 */
+        footer {
+            text-align: center;
+            padding: 40px;
+            color: #5a6478;
+            border-top: 1px solid rgba(0, 200, 255, 0.1);
+        }
+
+        /* 回到顶部按钮 */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(0, 200, 255, 0.2);
+            border: 1px solid #00c8ff;
+            color: #00c8ff;
+            font-size: 20px;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .back-to-top:hover {
+            background: #00c8ff;
+            color: #0a0e27;
+            box-shadow: 0 0 30px rgba(0, 200, 255, 0.5);
+            transform: scale(1.1);
+        }
+
+        /* 音乐播放器 */
+        .music-player {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            z-index: 1000;
+            background: rgba(10, 14, 39, 0.9);
+            border: 1px solid rgba(0, 200, 255, 0.5);
+            border-radius: 15px;
+            padding: 10px;
+            box-shadow: 0 0 30px rgba(0, 200, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .music-label {
+            font-size: 12px;
+            color: #00c8ff;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .music-player iframe {
+            border-radius: 8px;
+            display: block;
+        }
+
+        /* 小装饰 */
+        .decoration {
+            position: absolute;
+            pointer-events: none;
+        }
+
+        .deco-dot {
+            width: 6px;
+            height: 6px;
+            background: #00c8ff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #00c8ff;
+            animation: decoBlink 2s ease-in-out infinite;
+        }
+
+        .deco-dot.gold {
+            background: #ffd700;
+            box-shadow: 0 0 10px #ffd700;
+        }
+
+        @keyframes decoBlink {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <!-- 背景装饰 -->
+    <div class="bg-decoration">
+        <div class="light-column"></div>
+        <div class="light-column"></div>
+        <div class="light-column"></div>
+        <div class="light-column"></div>
+        <div class="light-column"></div>
+        
+        <!-- 粒子 -->
+        <div class="particle" style="top: 20%; left: 15%; animation-delay: 0s;"></div>
+        <div class="particle gold" style="top: 40%; left: 80%; animation-delay: 1s;"></div>
+        <div class="particle" style="top: 60%; left: 25%; animation-delay: 2s;"></div>
+        <div class="particle" style="top: 80%; left: 70%; animation-delay: 0.5s;"></div>
+        <div class="particle gold" style="top: 30%; left: 60%; animation-delay: 1.5s;"></div>
+        <div class="particle" style="top: 70%; left: 10%; animation-delay: 2.5s;"></div>
+        <div class="particle gold" style="top: 15%; left: 45%; animation-delay: 3s;"></div>
+        <div class="particle" style="top: 85%; left: 85%; animation-delay: 1.2s;"></div>
+    </div>
+
+    <!-- 鼠标跟随画布 -->
+    <canvas id="cursorCanvas"></canvas>
+
+    <!-- 导航栏 -->
+    <nav>
+        <div class="logo">ZOVI SPACE</div>
+        <ul class="nav-links">
+            <li><a href="#home">首页</a></li>
+            <li><a href="#about">关于我</a></li>
+            <li><a href="#skills">技能</a></li>
+            <li><a href="#works">作品</a></li>
+            <li><a href="#contact">联系</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <!-- Hero区域 -->
+        <section class="hero" id="home">
+            <div class="hero-content">
+                <h1 class="hero-title">Zovi · 个人主页</h1>
+                <p class="hero-subtitle">
+                    AI训练师<span>|</span>思维漫游<span>|</span>终身学习者
+                </p>
+                <a href="#about" class="btn">了解更多</a>
+            </div>
+            <div class="hero-avatar">
+                <div class="avatar-container">
+                    <img src="https://aka.doubaocdn.com/s/bRF11whSHG" alt="Zovi">
+                </div>
+            </div>
+        </section>
+
+        <!-- 关于我 -->
+        <section class="about" id="about">
+            <h2 class="section-title">关于我</h2>
+            <div class="about-content">
+                <img src="https://aka.doubaocdn.com/s/bRF11whSHG" alt="Zovi" class="about-avatar">
+                <div class="about-text">
+                    <p>尊重客观现实者，认清但依然热爱。</p>
+                    <p>做过管理和财务，有着对数据很高的敏锐度。</p>
+                    <p>希望不断精进对于客观世界中一切规律的理解，并且利用自己的能力创造出更多的价值。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 技能 -->
+        <section id="skills">
+            <h2 class="section-title">技能</h2>
+            <div class="skills-grid">
+                <div class="skill-card">
+                    <div class="skill-icon">🤖</div>
+                    <h3>AI训练</h3>
+                    <p>大模型微调、数据标注、Prompt工程</p>
+                </div>
+                <div class="skill-card">
+                    <div class="skill-icon">💡</div>
+                    <h3>Prompt工程</h3>
+                    <p>精准提示词设计、模型交互优化</p>
+                </div>
+                <div class="skill-card">
+                    <div class="skill-icon">📊</div>
+                    <h3>数据分析</h3>
+                    <p>数据处理、可视化、业务洞察</p>
+                </div>
+                <div class="skill-card">
+                    <div class="skill-icon">🎨</div>
+                    <h3>创意设计</h3>
+                    <p>AI绘图、网页设计、视觉创作</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 作品 -->
+        <section id="works">
+            <h2 class="section-title">作品</h2>
+            <div class="works-grid">
+                <div class="work-card">
+                    <div class="work-image">🚀</div>
+                    <div class="work-info">
+                        <h3>项目一</h3>
+                        <p>个人网站开发，vibe coding实践</p>
+                    </div>
+                </div>
+                <div class="work-card">
+                    <div class="work-image">✨</div>
+                    <div class="work-info">
+                        <h3>项目二</h3>
+                        <p>AI训练相关项目</p>
+                    </div>
+                </div>
+                <div class="work-card">
+                    <div class="work-image">📈</div>
+                    <div class="work-info">
+                        <h3>项目三</h3>
+                        <p>数据分析案例</p>
+                    </div>
+                </div>
+                <div class="work-card">
+                    <div class="work-image">🎯</div>
+                    <div class="work-info">
+                        <h3>项目四</h3>
+                        <p>更多作品待更新...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 联系 -->
+        <section class="contact" id="contact">
+            <h2 class="section-title">联系我</h2>
+            <p style="color: #8892a0; font-size: 18px;">期待与你交流</p>
+            <div class="contact-links">
+                <a href="#" class="contact-link">📧</a>
+                <a href="#" class="contact-link">💬</a>
+                <a href="#" class="contact-link">🐙</a>
+            </div>
+        </section>
+    </main>
+
+    <!-- 页脚 -->
+    <footer>
+        <p>© 2026 ZOVI SPACE · 用AI创造无限可能</p>
+    </footer>
+
+    <!-- 回到顶部 -->
+    <button class="back-to-top" id="backToTop">↑</button>
+
+    <!-- 音乐播放器 - 去掉自动播放，纯手动点击 -->
+    <div class="music-player">
+        <div class="music-label">♫ 千魇归渊 · 王者荣耀</div>
+        <iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width="330" height="86" src="https://music.163.com/outchain/player?type=2&id=3337173011&auto=0&height=86"></iframe>
+    </div>
+
+    <script>
+        // 回到顶部
+        const backToTop = document.getElementById('backToTop');
+        
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > window.innerHeight) {
+                backToTop.classList.add('visible');
+            } else {
+                backToTop.classList.remove('visible');
+            }
+        });
+
+        backToTop.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+
+        // 鼠标跟随粒子效果
+        const canvas = document.getElementById('cursorCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        const particles = [];
+
+        class CursorParticle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = Math.random() * 3 + 1;
+                this.speedX = (Math.random() - 0.5) * 2;
+                this.speedY = (Math.random() - 0.5) * 2;
+                this.life = 1;
+                this.color = Math.random() > 0.8 ? '255, 215, 0' : '0, 200, 255';
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.life -= 0.02;
+                this.size *= 0.98;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${this.color}, ${this.life})`;
+                ctx.fill();
+            }
+        }
+
+        document.addEventListener('mousemove', (e) => {
+            for (let i = 0; i < 2; i++) {
+                particles.push(new CursorParticle(e.clientX, e.clientY));
+            }
+        });
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update();
+                particles[i].draw();
+                
+                if (particles[i].life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+            
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+
+        // 添加小装饰
+        function addDecorations() {
+            const sections = document.querySelectorAll('section');
+            sections.forEach(section => {
+                for (let i = 0; i < 3; i++) {
+                    const dot = document.createElement('div');
+                    dot.className = 'decoration deco-dot' + (Math.random() > 0.7 ? ' gold' : '');
+                    dot.style.top = Math.random() * 100 + '%';
+                    dot.style.left = Math.random() * 100 + '%';
+                    dot.style.animationDelay = Math.random() * 2 + 's';
+                    section.appendChild(dot);
+                }
+            });
+        }
+        addDecorations();
+    </script>
+</body>
+</html>
