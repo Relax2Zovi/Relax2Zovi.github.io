@@ -478,31 +478,6 @@
             display: block;
         }
 
-        /* 音乐提示 */
-        .music-hint {
-            position: fixed;
-            bottom: 120px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(10, 14, 39, 0.9);
-            border: 1px solid #00c8ff;
-            color: #00c8ff;
-            padding: 12px 30px;
-            border-radius: 50px;
-            font-size: 14px;
-            z-index: 9999;
-            box-shadow: 0 0 20px rgba(0, 200, 255, 0.3);
-            animation: hintFade 5s forwards;
-            pointer-events: none;
-        }
-
-        @keyframes hintFade {
-            0% { opacity: 0; transform: translateX(-50%) translateY(20px); }
-            10% { opacity: 1; transform: translateX(-50%) translateY(0); }
-            80% { opacity: 1; }
-            100% { opacity: 0; visibility: hidden; }
-        }
-
         /* 小装饰 */
         .decoration {
             position: absolute;
@@ -526,19 +501,6 @@
         @keyframes decoBlink {
             0%, 100% { opacity: 0.3; }
             50% { opacity: 1; }
-        }
-
-        .deco-line {
-            width: 50px;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, #00c8ff, transparent);
-        }
-
-        .deco-hex {
-            width: 20px;
-            height: 20px;
-            border: 1px solid rgba(0, 200, 255, 0.5);
-            transform: rotate(45deg);
         }
     </style>
 </head>
@@ -689,10 +651,10 @@
     <!-- 回到顶部 -->
     <button class="back-to-top" id="backToTop">↑</button>
 
-    <!-- 音乐播放器 -->
+    <!-- 音乐播放器 - 去掉自动播放，纯手动点击 -->
     <div class="music-player">
         <div class="music-label">♫ 千魇归渊 · 王者荣耀</div>
-        <iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width=300 height=66 src="https://music.163.com/outchain/player?type=2&id=3337173011&auto=1&height=66"></iframe>
+        <iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width="330" height="86" src="https://music.163.com/outchain/player?type=2&id=3337173011&auto=0&height=86"></iframe>
     </div>
 
     <script>
@@ -734,8 +696,6 @@
         window.addEventListener('resize', resizeCanvas);
 
         const particles = [];
-        let mouseX = 0;
-        let mouseY = 0;
 
         class CursorParticle {
             constructor(x, y) {
@@ -764,11 +724,8 @@
         }
 
         document.addEventListener('mousemove', (e) => {
-            mouseX = e.clientX;
-            mouseY = e.clientY;
-            
             for (let i = 0; i < 2; i++) {
-                particles.push(new CursorParticle(mouseX, mouseY));
+                particles.push(new CursorParticle(e.clientX, e.clientY));
             }
         });
 
@@ -788,49 +745,10 @@
         }
         animateParticles();
 
-        // 自动播放音乐 - 点击任意处播放
-        let musicStarted = false;
-        
-        function showMusicHint() {
-            if (musicStarted) return;
-            const hint = document.createElement('div');
-            hint.className = 'music-hint';
-            hint.textContent = '♪ 点击任意处播放音乐';
-            document.body.appendChild(hint);
-            
-            setTimeout(() => {
-                if (hint.parentNode) {
-                    hint.parentNode.removeChild(hint);
-                }
-            }, 5000);
-        }
-
-        setTimeout(showMusicHint, 1000);
-
-        document.addEventListener('click', () => {
-            if (musicStarted) return;
-            musicStarted = true;
-            
-            // 重新加载iframe触发播放
-            const iframe = document.querySelector('.music-player iframe');
-            const src = iframe.src;
-            iframe.src = '';
-            setTimeout(() => {
-                iframe.src = src;
-            }, 100);
-            
-            // 移除提示
-            const hint = document.querySelector('.music-hint');
-            if (hint) {
-                hint.remove();
-            }
-        }, { once: true });
-
         // 添加小装饰
         function addDecorations() {
             const sections = document.querySelectorAll('section');
             sections.forEach(section => {
-                // 添加小点装饰
                 for (let i = 0; i < 3; i++) {
                     const dot = document.createElement('div');
                     dot.className = 'decoration deco-dot' + (Math.random() > 0.7 ? ' gold' : '');
